@@ -1,5 +1,13 @@
-import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import { useTodo } from "../store/store";
+import {
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    TextField,
+    Button
+} from "@mui/material";
 
 type Props = {
     open: boolean;
@@ -7,49 +15,70 @@ type Props = {
     user: {
         id: number;
         name: string;
-        job: string;
+        description?: string;
     } | null;
 };
 
 const EditDialog = ({ open, close, user }: Props) => {
     let { editUser } = useTodo();
 
-    let [name, setName] = useState("");
-    let [job, setJob] = useState("");
+    async function handleEdit(e: FormEvent<HTMLFormElement>) {
+        e.preventDefault();
 
-    useEffect(() => {
-        if (user) {
-            setName(user.name);
-            setJob(user.job);
+        if (!user) return;
+
+        let formData = new FormData(e.currentTarget);
+
+        let updatedUser = {
+            id: user.id,
+            name: formData.get("name") as string,
+            description: formData.get("description") as string
+        };
+
+        try {
+            await editUser(user.id, updatedUser);
+            close();
+        } catch (error) {
+            console.log(error);
         }
-    }, [user]);
-
-    function handleEdit() {
-        if (!user || !name || !job) return;
-
-        editUser(user.id, { name, job });
-        close();
     }
 
-    if (!open || !user) return null;
-
     return (
-        <div>
-            <h2>Edit User</h2>
+        <Dialog open={open} onClose={close}>
+            <DialogTitle>Edit Todo</DialogTitle>
 
-            <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-            />
+            <DialogContent>
+                <form id="editForm" onSubmit={handleEdit}>
+                    <TextField
+                        name="name"
+                        label="Name"
+                        defaultValue={user?.name}
+                        fullWidth
+                        margin="normal"
+                    />
 
-            <input
-                value={job}
-                onChange={(e) => setJob(e.target.value)}
-            />
+                    <TextField
+                        name="description"
+                        label="Description"
+                        defaultValue={user?.description}
+                        fullWidth
+                        margin="normal"
+                    />
+                </form>
+            </DialogContent>
 
-            <button onClick={handleEdit}>Save</button>
-            <button onClick={close}>Close</button>
-        </div>
+            <DialogActions>
+                <Button onClick={close}>Close</Button>
+
+                <Button
+                    type="submit"
+                    form="editForm"
+                    variant="contained"
+                >
+                    Save
+                </Button>
+            </DialogActions>
+        </Dialog>
     );
 };
 

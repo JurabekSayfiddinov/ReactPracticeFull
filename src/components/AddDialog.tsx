@@ -1,5 +1,13 @@
-import { useState } from "react";
+import type { FormEvent } from "react";
 import { useTodo } from "../store/store";
+import {
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    TextField,
+    Button
+} from "@mui/material";
 
 type Props = {
     open: boolean;
@@ -9,40 +17,60 @@ type Props = {
 const AddDialog = ({ open, close }: Props) => {
     let { addUser } = useTodo();
 
-    let [name, setName] = useState("");
-    let [job, setJob] = useState("");
+    async function handleAdd(e: FormEvent<HTMLFormElement>) {
+        e.preventDefault();
 
-    function handleAdd() {
-        if (!name || !job) return;
+        let formData = new FormData(e.currentTarget);
 
-        addUser({ name, job });
-
-        setName("");
-        setJob("");
-        close();
+        try {
+            await addUser(formData);
+            close();
+        } catch (error) {
+            console.log(error);
+        }
     }
 
-    if (!open) return null;
-
     return (
-        <div>
-            <h2>Add User</h2>
+        <Dialog open={open} onClose={close}>
+            <DialogTitle>Add Todo</DialogTitle>
 
-            <input
-                placeholder="Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-            />
+            <DialogContent>
+                <form id="addForm" onSubmit={handleAdd}>
+                    <TextField
+                        name="Name"
+                        label="Name"
+                        fullWidth
+                        margin="normal"
+                    />
 
-            <input
-                placeholder="Job"
-                value={job}
-                onChange={(e) => setJob(e.target.value)}
-            />
+                    <TextField
+                        name="Description"
+                        label="Description"
+                        fullWidth
+                        margin="normal"
+                    />
 
-            <button onClick={handleAdd}>Add</button>
-            <button onClick={close}>Close</button>
-        </div>
+                    <input
+                        type="file"
+                        name="Images"
+                        multiple
+                        accept="image/*"
+                    />
+                </form>
+            </DialogContent>
+
+            <DialogActions>
+                <Button onClick={close}>Close</Button>
+
+                <Button
+                    type="submit"
+                    form="addForm"
+                    variant="contained"
+                >
+                    Add
+                </Button>
+            </DialogActions>
+        </Dialog>
     );
 };
 
