@@ -13,10 +13,12 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/material": "^9.5.0",
+    "@reduxjs/toolkit": "^2.14.0",
     "axios": "^1.21.0",
     "jotai": "^3.0.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
+    "react-redux": "^9.3.1",
     "zustand": "^5.1.0"
   },
   "devDependencies": {
