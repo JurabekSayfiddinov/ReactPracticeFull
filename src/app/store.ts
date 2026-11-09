@@ -1,10 +1,9 @@
 import { configureStore } from '@reduxjs/toolkit'
-import dataSlice  from "./CounterSlice"
-
+import dataSlice from "./CounterSlice"
 export const store = configureStore({
   reducer: {
-   data:dataSlice
-}
+  data:dataSlice
+  }
 })
 
 
