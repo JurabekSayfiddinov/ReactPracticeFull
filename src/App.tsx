@@ -3,40 +3,54 @@ import { deleteUserAtom, getUsersAtom, todoAtom } from './store/store'
 import { useAtomValue, useSetAtom } from "jotai";
 import { Button } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
-import { addUser, deleteUser, editUser } from "./app/CounterSlice";
+import { addUser, deleteUser, editUser, getUsers } from "./app/CounterSlice";
+
 
 const App = () => {
-      let {data}=useSelector((state)=>state.data)
+      let {data,loading}=useSelector((state)=>state.data)
       let dispatch=useDispatch()
-      let [elem,setElem]=useState({})
-      let handleEdit=(e)=>{
-         setElem(e)
+      let [editId,setEditId]=useState<number | null>(null)
+      let [editUserData, setEditUserData] = useState<User | null>(null)
+     useEffect(() => {
+         dispatch(getUsers())
+     }, [])
+     const handleSubmit=(e)=>{
+      e.preventDefault()
+      let newUser={
+         fullname:e.target.fullname.value,
+         job:e.target.job.value
+      }
+      if(editId!==null){
+         dispatch(editUser({
+            id:editId,
+            ...newUser
+         }))
+         setEditId(null)
+      }
+      dispatch(addUser(newUser))
+      e.target.reset()
+     }
 
-      }
-      let handleSubmit=(e)=>{
-         e.preventDefault()
-         let newUser={
-            id:elem.id?elem.id:Date.now(),
-            name:e.target.name.value,
-            job:e.target.job.value
-         }
-         elem.id?dispatch(editUser(newUser)): dispatch(addUser(newUser))
-         e.target.reset()
-         
-      }
-  return (
-    <>
-    <form onSubmit={handleSubmit}>
-      <input defaultValue={elem.name} name="name" type="text" />
-      <input defaultValue={elem.job} name="job" type="text" />
-      <button type="submit">{elem.id?"Save":"Add"}</button>
-    </form>
+      if(loading){
+          return <h2>Loading...</h2>
+        }
+     return (
+        <>
+      <form onSubmit={handleSubmit} key={editUserData?.id || "new"}>
+         <input   defaultValue={editUserData?.fullname} type="text" name="fullname" />
+         <input  defaultValue={editUserData?.job} type="text" name="job" />
+         <Button type="submit" variant="outlined"> {editUserData ? "Save" : "Add"}</Button>
+      </form>
     {data.map((e)=>(
         <div key={e.id}>
-            <h1>{e.name}</h1>
+            <h1>{e.fullname}</h1>
             <p>{e.job}</p>
             <Button onClick={()=>dispatch(deleteUser(e.id))}>Delete</Button>
-            <Button onClick={()=>handleEdit(e)}>Edit</Button>
+            <Button onClick={()=>{
+   setEditId(e.id)
+}}>
+   Edit
+</Button>
         </div>
         
     ))}
