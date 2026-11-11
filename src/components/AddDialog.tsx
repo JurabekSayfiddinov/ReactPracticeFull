@@ -1,77 +1,44 @@
-import type { FormEvent } from "react";
-import { useTodo } from "../store/store";
-import {
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    TextField,
-    Button
-} from "@mui/material";
+import { useAtom } from "jotai"
+import { useDispatch } from "react-redux"
+import { addUserJ } from "../store/jotai"
+import { getData } from "../store/zustand"
+import { addR } from "../store/CounterSlice"
+import { Button, Dialog } from "@mui/material"
+import { useState } from "react"
 
-type Props = {
-    open: boolean;
-    close: () => void;
-};
+const AddDialog = ({open,setOpen}) => {
+   let dispatch=useDispatch()
+   let [,addJ]=useAtom(addUserJ)
+   const {addZ}=getData((state)=>state)
 
-const AddDialog = ({ open, close }: Props) => {
-    let { addUser } = useTodo();
-
-    async function handleAdd(e: FormEvent<HTMLFormElement>) {
-        e.preventDefault();
-
-        let formData = new FormData(e.currentTarget);
-
-        try {
-            await addUser(formData);
-            close();
-        } catch (error) {
-            console.log(error);
-        }
-    }
-
-    return (
-        <Dialog open={open} onClose={close}>
-            <DialogTitle>Add Todo</DialogTitle>
-
-            <DialogContent>
-                <form id="addForm" onSubmit={handleAdd}>
-                    <TextField
-                        name="Name"
-                        label="Name"
-                        fullWidth
-                        margin="normal"
-                    />
-
-                    <TextField
-                        name="Description"
-                        label="Description"
-                        fullWidth
-                        margin="normal"
-                    />
-
-                    <input
-                        type="file"
-                        name="Images"
-                        multiple
-                        accept="image/*"
-                    />
-                </form>
-            </DialogContent>
-
-            <DialogActions>
-                <Button onClick={close}>Close</Button>
-
-                <Button
-                    type="submit"
-                    form="addForm"
-                    variant="contained"
-                >
-                    Add
-                </Button>
-            </DialogActions>
-        </Dialog>
-    );
-};
-
-export default AddDialog;
+   function addUs(user) {
+         addJ(user)
+         addZ(user)
+         dispatch(addR(user))
+   }
+   function  handleSubmit(e) {
+      e.preventDefault()
+      let newUser={
+         id:Date.now(),
+         name:e.target.name.value,
+         age:e.target.age.value,
+         job:e.target.job.value
+      }
+      addUs(newUser)
+      setOpen(false)
+   }
+  return (
+    <>
+    <Dialog open={open}>
+   <form onSubmit={handleSubmit}>
+      <input type="text" name="name" placeholder="Name..."/>
+      <input type="text" name="age" placeholder="Age..."/>
+      <input type="text" name="job" placeholder="Job..."/>
+      <Button type="submit">Add</Button>
+      <Button type="button" onClick={()=>setOpen(false)}>Cancel</Button>
+   </form>
+    </Dialog>
+    </>
+  )
+}
+export default AddDialog

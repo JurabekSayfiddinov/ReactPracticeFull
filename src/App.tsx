@@ -1,62 +1,52 @@
-import React, { useEffect, useState } from 'react'
-import { deleteUserAtom, getUsersAtom, todoAtom } from './store/store'
-import { useAtomValue, useSetAtom } from "jotai";
-import { Button } from "@mui/material";
-import { useDispatch, useSelector } from "react-redux";
-import { addUser, deleteUser, editUser, getUsers } from "./app/CounterSlice";
-
-
+import { useAtom, useAtomValue } from "jotai"
+import { dataAtom, deleteUserJ } from "./store/jotai"
+import { useDispatch, useSelector } from "react-redux"
+import { getData } from "./store/zustand"
+import { Button, TextField } from "@mui/material"
+import { DeleteR } from "./store/CounterSlice"
+import DeleteIcon from '@mui/icons-material/Delete';
+import { useState } from "react"
+import AddDialog from "./components/AddDialog"
+import DialogEdit from "./components/EditDialog"
 const App = () => {
-      let {data,loading}=useSelector((state)=>state.data)
-      let dispatch=useDispatch()
-      let [editId,setEditId]=useState<number | null>(null)
-      let [editUserData, setEditUserData] = useState<User | null>(null)
-     useEffect(() => {
-         dispatch(getUsers())
-     }, [])
-     const handleSubmit=(e)=>{
-      e.preventDefault()
-      let newUser={
-         fullname:e.target.fullname.value,
-         job:e.target.job.value
-      }
-      if(editId!==null){
-         dispatch(editUser({
-            id:editId,
-            ...newUser
-         }))
-         setEditId(null)
-      }
-      dispatch(addUser(newUser))
-      e.target.reset()
-     }
-
-      if(loading){
-          return <h2>Loading...</h2>
-        }
-     return (
-        <>
-      <form onSubmit={handleSubmit} key={editUserData?.id || "new"}>
-         <input   defaultValue={editUserData?.fullname} type="text" name="fullname" />
-         <input  defaultValue={editUserData?.job} type="text" name="job" />
-         <Button type="submit" variant="outlined"> {editUserData ? "Save" : "Add"}</Button>
-      </form>
-    {data.map((e)=>(
-        <div key={e.id}>
-            <h1>{e.fullname}</h1>
+   let dataJ=useAtomValue(dataAtom)
+   let [,deleteJ]=useAtom(deleteUserJ)
+    const [openAdd,setOpenAdd]=useState(false)
+   let dispatch=useDispatch()
+   let {data}=useSelector((state)=>state.data)
+   let {dataZ,DeleteZ}=getData((state)=>state)
+    let [userOpen,setUser] = useState(null)
+   let user=data.map((e)=>{
+      let Zus=dataZ.find((el)=>el.id==e.id)
+      let Jot=dataJ.find((el)=>el.id==e.id)
+      return {...e,...Zus,...Jot}
+})
+   let [search,setSearch]=useState("")
+   let fil=user.filter((e)=>e.name.toLowerCase().includes(search.toLowerCase()) )
+   function deleteUser(id) {
+         deleteJ(id)
+         DeleteZ(id)
+         dispatch(DeleteR(id))
+   }
+  return (
+    <>
+      <TextField label="Search..." variant="outlined" size="small" value={search} onChange={(e)=>setSearch(e.target.value)}/>
+      <Button onClick={()=>setOpenAdd(true)}>Add User</Button>
+      <AddDialog open={openAdd} setOpen={setOpenAdd}/>
+        <DialogEdit user={userOpen}  openUser={setUser}/>
+      {fil.map((e)=>(
+         <div style={{textAlign:'center', width:'200px'}} key={e.id}>
+            <img style={{width:'100px', borderRadius:'50%'}} src={e.image} alt="" />
+            <h3>{e.name}</h3>
+            <p>{e.age}</p>
             <p>{e.job}</p>
-            <Button onClick={()=>dispatch(deleteUser(e.id))}>Delete</Button>
-            <Button onClick={()=>{
-   setEditId(e.id)
-}}>
-   Edit
-</Button>
-        </div>
-        
-    ))}
-    
+           <Button onClick={()=>deleteUser(e.id)} variant="outlined" startIcon={<DeleteIcon/>}>
+                         Delete
+                           </Button>
+                               <Button onClick={()=>setUser(e)}>Edit</Button>
+         </div>
+      ))}
     </>
   )
 }
-
 export default App

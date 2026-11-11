@@ -1,85 +1,50 @@
-import type { FormEvent } from "react";
-import { useTodo } from "../store/store";
-import {
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    TextField,
-    Button
-} from "@mui/material";
+import { useAtom } from "jotai"
 
-type Props = {
-    open: boolean;
-    close: () => void;
-    user: {
-        id: number;
-        name: string;
-        description?: string;
-    } | null;
-};
 
-const EditDialog = ({ open, close, user }: Props) => {
-    let { editUser } = useTodo();
+import { useDispatch } from "react-redux"
+import { editR } from "../store/CounterSlice"
+import { Button, Dialog } from "@mui/material"
+import { editUserJ } from "../store/jotai"
+import { getData } from "../store/zustand"
 
-    async function handleEdit(e: FormEvent<HTMLFormElement>) {
-        e.preventDefault();
 
-        if (!user) return;
+export default function DialogEdit({ user, openUser }) {
+  const dispatch = useDispatch()
+  const [, EditJ] = useAtom(editUserJ)
+  const { EditZ } = getData((state) => state)
 
-        let formData = new FormData(e.currentTarget);
+ 
 
-        let updatedUser = {
-            id: user.id,
-            name: formData.get("name") as string,
-            description: formData.get("description") as string
-        };
+  function EditUss(obj) {
+    EditJ(obj)
+    EditZ(obj)
+    dispatch(editR(obj))
+  }
 
-        try {
-            await editUser(user.id, updatedUser);
-            close();
-        } catch (error) {
-            console.log(error);
-        }
+  function edit(e) {
+    e.preventDefault()
+    const editobj = {
+      id: user.id,
+      name: e.target.name.value,
+      age: e.target.age.value,
+      job:e.target.job.value
     }
+    EditUss(editobj)
+    openUser(null)
+  }
 
-    return (
-        <Dialog open={open} onClose={close}>
-            <DialogTitle>Edit Todo</DialogTitle>
-
-            <DialogContent>
-                <form id="editForm" onSubmit={handleEdit}>
-                    <TextField
-                        name="name"
-                        label="Name"
-                        defaultValue={user?.name}
-                        fullWidth
-                        margin="normal"
-                    />
-
-                    <TextField
-                        name="description"
-                        label="Description"
-                        defaultValue={user?.description}
-                        fullWidth
-                        margin="normal"
-                    />
-                </form>
-            </DialogContent>
-
-            <DialogActions>
-                <Button onClick={close}>Close</Button>
-
-                <Button
-                    type="submit"
-                    form="editForm"
-                    variant="contained"
-                >
-                    Save
-                </Button>
-            </DialogActions>
-        </Dialog>
-    );
-};
-
-export default EditDialog;
+  return (
+    <Dialog open={user}>
+  
+      <form onSubmit={edit} >
+        <input defaultValue={user?.name} type="text" name="name" id="" />
+        <input defaultValue={user?.age} type="text" name="age" id="" />
+        <input defaultValue={user?.job} type="text" name="job" id="" />
+        <Button type="submit">save</Button>
+        <Button onClick={() => openUser(null)} type="button">
+          cancel
+        </Button>
+      </form> 
+    </Dialog>
+  )
+}
