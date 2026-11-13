@@ -1,44 +1,78 @@
-import { useAtom } from "jotai"
-import { useDispatch } from "react-redux"
-import { addUserJ } from "../store/jotai"
-import { getData } from "../store/zustand"
-import { addR } from "../store/CounterSlice"
-import { Button, Dialog } from "@mui/material"
-import { useState } from "react"
+import { Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Select, TextField } from '@mui/material'
+import React from 'react'
+import { useForm } from 'react-hook-form'
+import { useDispatch } from 'react-redux'
+import { addUser } from '../store/counterSlice'
+
 
 const AddDialog = ({open,setOpen}) => {
-   let dispatch=useDispatch()
-   let [,addJ]=useAtom(addUserJ)
-   const {addZ}=getData((state)=>state)
+    let dispatch=useDispatch()
+    let {
+        register,
+        handleSubmit,
+        reset,
+        formState:{isSubmitting}
+    }=useForm()
 
-   function addUs(user) {
-         addJ(user)
-         addZ(user)
-         dispatch(addR(user))
-   }
-   function  handleSubmit(e) {
-      e.preventDefault()
-      let newUser={
-         id:Date.now(),
-         name:e.target.name.value,
-         age:e.target.age.value,
-         job:e.target.job.value
-      }
-      addUs(newUser)
-      setOpen(false)
-   }
+    async function  addNewUser(user) {
+        let newUser={
+            fullname:user.fullname,
+            age:user.age,
+            avatar:user.avatar,
+            status:user.status==='true'
+        }
+        try {
+            await dispatch(addUser(newUser))
+            reset()
+            setOpen(false)
+        } catch (error) {
+            console.log(error);
+            
+        }
+    }
   return (
     <>
-    <Dialog open={open}>
-   <form onSubmit={handleSubmit}>
-      <input type="text" name="name" placeholder="Name..."/>
-      <input type="text" name="age" placeholder="Age..."/>
-      <input type="text" name="job" placeholder="Job..."/>
-      <Button type="submit">Add</Button>
-      <Button type="button" onClick={()=>setOpen(false)}>Cancel</Button>
-   </form>
-    </Dialog>
+        <Dialog open={open} onClose={()=>setOpen(false)}>
+            <DialogTitle>Add User</DialogTitle>
+            <form onSubmit={handleSubmit(addNewUser)}>
+                <DialogContent>
+                      <TextField
+            label="Fullname"
+            {...register("fullname", { required: true })}
+          />
+
+          <TextField
+            label="Age"
+            type="number"
+            {...register("age")}
+          />
+
+          <TextField
+            label="Avatar"
+            {...register("avatar")}
+          />
+
+          <Select {...register("status")}>
+            <MenuItem value="true">Online</MenuItem>
+            <MenuItem value="false">Offline</MenuItem>
+          </Select>
+                </DialogContent>
+                 <DialogActions>
+          <Button onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting && (
+              <CircularProgress size={20} color="inherit" />
+            )}
+            Add
+          </Button>
+        </DialogActions>
+            </form>
+        </Dialog>
     </>
   )
 }
+
 export default AddDialog

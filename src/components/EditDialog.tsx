@@ -35,7 +35,7 @@ export default function DialogEdit({ user, openUser }) {
 
   return (
     <Dialog open={user}>
-  
+      
       <form onSubmit={edit} >
         <input defaultValue={user?.name} type="text" name="name" id="" />
         <input defaultValue={user?.age} type="text" name="age" id="" />
