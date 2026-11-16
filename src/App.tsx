@@ -1,52 +1,76 @@
-import { useAtom, useAtomValue } from "jotai"
-import { dataAtom, deleteUserJ } from "./store/jotai"
-import { useDispatch, useSelector } from "react-redux"
-import { getData } from "./store/zustand"
-import { Button, TextField } from "@mui/material"
-import { DeleteR } from "./store/CounterSlice"
-import DeleteIcon from '@mui/icons-material/Delete';
-import { useState } from "react"
-import AddDialog from "./components/AddDialog"
-import DialogEdit from "./components/EditDialog"
+import { useAddTodoMutation, useDeleteTodoMutation, useEditTodoMutation, useGetTodosQuery } from "./store/todosApi";
+
+
 const App = () => {
-   let dataJ=useAtomValue(dataAtom)
-   let [,deleteJ]=useAtom(deleteUserJ)
-    const [openAdd,setOpenAdd]=useState(false)
-   let dispatch=useDispatch()
-   let {data}=useSelector((state)=>state.data)
-   let {dataZ,DeleteZ}=getData((state)=>state)
-    let [userOpen,setUser] = useState(null)
-   let user=data.map((e)=>{
-      let Zus=dataZ.find((el)=>el.id==e.id)
-      let Jot=dataJ.find((el)=>el.id==e.id)
-      return {...e,...Zus,...Jot}
-})
-   let [search,setSearch]=useState("")
-   let fil=user.filter((e)=>e.name.toLowerCase().includes(search.toLowerCase()) )
-   function deleteUser(id) {
-         deleteJ(id)
-         DeleteZ(id)
-         dispatch(DeleteR(id))
-   }
+  const { data, isLoading, isError } = useGetTodosQuery();
+
+  const [addTodo] = useAddTodoMutation();
+  const [editTodo] = useEditTodoMutation();
+  const [deleteTodo] = useDeleteTodoMutation();
+
+  async function handleAdd() {
+    try {
+      await addTodo({
+        name: "Learn React",
+        description: "Practice RTK Query",
+        isCompleted: false,
+      }).unwrap();
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async function handleEdit(id: number) {
+    try {
+      await editTodo({
+        id,
+        body: {
+          name: "Updated Todo",
+          description: "Updated description",
+          isCompleted: true,
+        },
+      }).unwrap();
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async function handleDelete(id: number) {
+    try {
+      await deleteTodo(id).unwrap();
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  if (isLoading) return <h2>Loading...</h2>;
+  if (isError) return <h2>Something went wrong...</h2>;
+
   return (
-    <>
-      <TextField label="Search..." variant="outlined" size="small" value={search} onChange={(e)=>setSearch(e.target.value)}/>
-      <Button onClick={()=>setOpenAdd(true)}>Add User</Button>
-      <AddDialog open={openAdd} setOpen={setOpenAdd}/>
-        <DialogEdit user={userOpen}  openUser={setUser}/>
-      {fil.map((e)=>(
-         <div style={{textAlign:'center', width:'200px'}} key={e.id}>
-            <img style={{width:'100px', borderRadius:'50%'}} src={e.image} alt="" />
-            <h3>{e.name}</h3>
-            <p>{e.age}</p>
-            <p>{e.job}</p>
-           <Button onClick={()=>deleteUser(e.id)} variant="outlined" startIcon={<DeleteIcon/>}>
-                         Delete
-                           </Button>
-                               <Button onClick={()=>setUser(e)}>Edit</Button>
-         </div>
+    <div>
+      <h1>Todo List</h1>
+
+      <button onClick={handleAdd}>
+        Add Todo
+      </button>
+
+      {data?.data?.map((todo) => (
+        <div key={todo.id}>
+          <h3>{todo.name}</h3>
+          <p>{todo.description}</p>
+          <p>{todo.isCompleted ? "Completed" : "Pending"}</p>
+
+          <button onClick={() => handleEdit(todo.id)}>
+            Edit
+          </button>
+
+          <button onClick={() => handleDelete(todo.id)}>
+            Delete
+          </button>
+        </div>
       ))}
-    </>
-  )
-}
-export default App
+    </div>
+  );
+};
+
+export default App;
