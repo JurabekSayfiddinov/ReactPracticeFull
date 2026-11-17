@@ -1,49 +1,59 @@
 
 import { useEffect } from "react";
-import { useAtom, useSetAtom } from "jotai";
-import { addCategoryAtom, categoriesAtom, deleteCategoryAtom, editCategoryAtom, errorAtom, getCategoriesAtom, loadingAtom } from "./store/jotai";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState, AppDispatch } from "./store";
 
-
+import {
+  getCategories,
+  addCategory,
+  editCategory,
+  deleteCategory,
+} from "./CounterSlice";
 
 function App() {
-  const [categories] = useAtom(categoriesAtom);
-  const [loading] = useAtom(loadingAtom);
-  const [error] = useAtom(errorAtom);
+  const dispatch = useDispatch<AppDispatch>();
 
-  const getCategories = useSetAtom(getCategoriesAtom);
-  const addCategory = useSetAtom(addCategoryAtom);
-  const editCategory = useSetAtom(editCategoryAtom);
-  const deleteCategory = useSetAtom(deleteCategoryAtom);
+  const { data, loading, error } = useSelector(
+    (state: RootState) => state.categories
+  );
 
   useEffect(() => {
-    getCategories();
-  }, []);
+    dispatch(getCategories());
+  }, [dispatch]);
 
   return (
     <div>
-      <button onClick={() => addCategory({ name: "Sport" })}>
+      <button
+        onClick={() =>
+          dispatch(addCategory({ name: "Sport" }))
+        }
+      >
         Add
       </button>
 
       {loading && <p>Loading...</p>}
       {error && <p>{error}</p>}
 
-      {categories.map((item) => (
+      {data.map((item) => (
         <div key={item.id}>
           <span>{item.name}</span>
 
           <button
             onClick={() =>
-              editCategory({
-                id: item.id,
-                name: "New category",
-              })
+              dispatch(
+                editCategory({
+                  id: item.id,
+                  name: "New category",
+                })
+              )
             }
           >
             Edit
           </button>
 
-          <button onClick={() => deleteCategory(item.id)}>
+          <button
+            onClick={() => dispatch(deleteCategory(item.id))}
+          >
             Delete
           </button>
         </div>
