@@ -1,70 +1,75 @@
-import { useAddTodoMutation, useDeleteTodoMutation, useEditTodoMutation, useGetTodosQuery } from "./store/todosApi";
+
+import { useEffect, useState } from "react";
+import { useCategoryStore } from "./store/zustand";
 
 
 const App = () => {
-  const { data, isLoading, isError } = useGetTodosQuery();
+  const {
+    data,
+    loading,
+    error,
+    getCategories,
+    addCategory,
+    editCategory,
+    deleteCategory,
+  } = useCategoryStore();
 
-  const [addTodo] = useAddTodoMutation();
-  const [editTodo] = useEditTodoMutation();
-  const [deleteTodo] = useDeleteTodoMutation();
+  const [name, setName] = useState("");
+  const [editId, setEditId] = useState<number | null>(null);
 
-  async function handleAdd() {
-    try {
-      await addTodo({
-        name: "Learn React",
-        description: "Practice RTK Query",
-        isCompleted: false,
-      }).unwrap();
-    } catch (error) {
-      console.log(error);
+  useEffect(() => {
+    getCategories();
+  }, [getCategories]);
+
+  async function handleSubmit() {
+    if (!name.trim()) return;
+
+    if (editId !== null) {
+      await editCategory(editId, { name });
+      setEditId(null);
+    } else {
+      await addCategory({ name });
     }
+
+    setName("");
   }
 
-  async function handleEdit(id: number) {
-    try {
-      await editTodo({
-        id,
-        body: {
-          name: "Updated Todo",
-          description: "Updated description",
-          isCompleted: true,
-        },
-      }).unwrap();
-    } catch (error) {
-      console.log(error);
-    }
+  function handleEdit(id: number, categoryName: string) {
+    setEditId(id);
+    setName(categoryName);
   }
-
-  async function handleDelete(id: number) {
-    try {
-      await deleteTodo(id).unwrap();
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  if (isLoading) return <h2>Loading...</h2>;
-  if (isError) return <h2>Something went wrong...</h2>;
 
   return (
     <div>
-      <h1>Todo List</h1>
+      <h1>Categories CRUD</h1>
 
-      <button onClick={handleAdd}>
-        Add Todo
+      <input
+        placeholder="Category name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
+
+      <button onClick={handleSubmit} disabled={loading}>
+        {editId !== null ? "Edit" : "Add"}
       </button>
 
-      {data?.data?.map((todo) => (
-        <div key={todo.id}>
-          <h3>{todo.name}</h3>
-          <p>{todo.description}</p>
-          <p>{todo.isCompleted ? "Completed" : "Pending"}</p>
+      {loading && <h3>Loading...</h3>}
 
-          <button onClick={() => handleEdit(todo.id)}>
+      {error && <p>{error}</p>}
+
+      {data.map((category) => (
+        <div key={category.id}>
+          <h3>{category.name}</h3>
+
+          <button
+            onClick={() => handleEdit(category.id, category.name)}
+          >
             Edit
           </button>
 
-          <button onClick={() => handleDelete(todo.id)}>
+          <button
+            onClick={() => deleteCategory(category.id)}
+          >
             Delete
           </button>
         </div>
