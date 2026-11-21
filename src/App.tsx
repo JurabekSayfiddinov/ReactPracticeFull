@@ -1,65 +1,63 @@
+import { createBrowserRouter, RouterProvider } from "react-router-dom"
 
-import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import type { RootState, AppDispatch } from "./store";
+import Home from "./pages/Home"
+import Layout from "./pages/Layout"
+import Register from "./pages/Register"
+import AdminLayout from "./pages/AdminPanel/AdminLayout"
+import Dashboard from "./pages/AdminPanel/Dashboard"
+import Login from "./pages/Login"
+import AddDebt from "./pages/AdminPanel/AddDebt"
+import Debts from "./pages/AdminPanel/Debts"
+import DebtDetails from "./pages/AdminPanel/DebtsDetails"
+import Folders from "./pages/AdminPanel/Folders"
 
-import {
-  getCategories,
-  addCategory,
-  editCategory,
-  deleteCategory,
-} from "./CounterSlice";
-
-function App() {
-  const dispatch = useDispatch<AppDispatch>();
-
-  const { data, loading, error } = useSelector(
-    (state: RootState) => state.categories
-  );
-
-  useEffect(() => {
-    dispatch(getCategories());
-  }, [dispatch]);
-
-  return (
-    <div>
-      <button
-        onClick={() =>
-          dispatch(addCategory({ name: "Sport" }))
-        }
-      >
-        Add
-      </button>
-
-      {loading && <p>Loading...</p>}
-      {error && <p>{error}</p>}
-
-      {data.map((item) => (
-        <div key={item.id}>
-          <span>{item.name}</span>
-
-          <button
-            onClick={() =>
-              dispatch(
-                editCategory({
-                  id: item.id,
-                  name: "New category",
-                })
-              )
+const router = createBrowserRouter([
+   {
+      path: "/",
+      element: <Layout />,
+      children: [{ index: true, element: <Home /> }],
+   },
+   {
+      path: "signup",
+      element: <Register />,
+   },
+   {
+      path: "login",
+      element: <Login/>,
+   },
+   {
+      path: "dashboard",
+      element: <AdminLayout />,
+      children: [
+         { 
+            index: true, 
+            element: <Dashboard /> 
+         },
+          {
+             path: "debts/new", 
+             element: <AddDebt />
+             },
+            {
+               path:"debts",
+               element: <Debts/>
+            },
+            {
+               path:"folders",
+               element: <Folders/>
+            },
+            {
+               path:"/dashboard/debts/:id",
+                 element: <DebtDetails />
             }
-          >
-            Edit
-          </button>
+         ],
 
-          <button
-            onClick={() => dispatch(deleteCategory(item.id))}
-          >
-            Delete
-          </button>
-        </div>
-      ))}
-    </div>
-  );
+   },
+   {
+      path: "*",
+      element: <div className="p-6">404 — Page not found</div>,
+   },
+])
+
+export default function App() {
+   return <RouterProvider router={router} />
 }
-
-export default App;

@@ -1,12 +1,9 @@
-
-import { configureStore } from "@reduxjs/toolkit";
-import categoryReducer from "./CounterSlice"
+import { configureStore } from "@reduxjs/toolkit"
+import { api } from "./api"
 
 export const store = configureStore({
-  reducer: {
-    categories: categoryReducer,
-  },
-});
-
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
+   reducer: {
+      [api.reducerPath]: api.reducer,
+   },
+   middleware: (getDefault) => getDefault().concat(api.middleware),
+})
